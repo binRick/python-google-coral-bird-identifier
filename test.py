@@ -1,7 +1,4 @@
-import argparse
-import time
-
-import numpy as np
+import argparse, time, sys, os, numpy as np
 from PIL import Image
 from pycoral.adapters import classify
 from pycoral.adapters import common
@@ -52,7 +49,9 @@ def main():
       images.append(args.input)
 
   for index, img in enumerate(images):
-      print(f'Analzying image {img}')
+      if not os.path.isfile(img):
+          continue
+      print(f'\nAnalzying image {img}')
 
       image = Image.open(img).convert('RGB').resize(size, Image.LANCZOS)
 

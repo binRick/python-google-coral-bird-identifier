@@ -5,18 +5,15 @@ if [[ ! -d .v ]]; then
 	python3 -m pip install --extra-index-url https://google-coral.github.io/py-repo/ pycoral~=2.0
 fi
 source .v/bin/activate
-BIRDS="\
-images/parrot.jpg\
-,images/tufted_flycatcher.jpg\
-"
+BIRDS="$(find images/birds/ -type f|tr '\n' ',')"
 
 birds(){
-	for I in $BIRDS; do
-	 time python3 ./test.py \
+	cmd="time python3 ./test.py \
 		--model models/birds.tflite \
 		--labels labels/birds.txt \
-		--input $I
-	done
+		--input $BIRDS"
+	echo -e "$cmd" >&2
+	eval "$cmd"
 }
 
 main(){
