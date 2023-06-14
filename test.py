@@ -45,45 +45,43 @@ def main():
     raise ValueError('Only support uint8 input type.')
 
   size = common.input_size(interpreter)
-  image = Image.open(args.input).convert('RGB').resize(size, Image.LANCZOS)
-
-  # Image data must go through two transforms before running inference:
-  # 1. normalization: f = (input - mean) / std
-  # 2. quantization: q = f / scale + zero_point
-  # The following code combines the two steps as such:
-  # q = (input - mean) / (std * scale) + zero_point
-  # However, if std * scale equals 1, and mean - zero_point equals 0, the input
-  # does not need any preprocessing (but in practice, even if the results are
-  # very close to 1 and 0, it is probably okay to skip preprocessing for better
-  # efficiency; we use 1e-5 below instead of absolute zero).
-  params = common.input_details(interpreter, 'quantization_parameters')
-  scale = params['scales']
-  zero_point = params['zero_points']
-  mean = args.input_mean
-  std = args.input_std
-  if abs(scale * std - 1) < 1e-5 and abs(mean - zero_point) < 1e-5:
-    # Input data does not require preprocessing.
-    common.set_input(interpreter, image)
+  images = []
+  if ',' in args.input:
+      images = args.input.split(',')
   else:
-    # Input data requires preprocessing
-    normalized_input = (np.asarray(image) - mean) / (std * scale) + zero_point
-    np.clip(normalized_input, 0, 255, out=normalized_input)
-    common.set_input(interpreter, normalized_input.astype(np.uint8))
+      images.append(args.input)
 
-  # Run inference
-  print('----INFERENCE TIME----')
-  print('Note: The first inference on Edge TPU is slow because it includes',
-        'loading the model into Edge TPU memory.')
-  for _ in range(args.count):
-    start = time.perf_counter()
-    interpreter.invoke()
-    inference_time = time.perf_counter() - start
-    classes = classify.get_classes(interpreter, args.top_k, args.threshold)
-    print('%.1fms' % (inference_time * 1000))
+  for index, img in enumerate(images):
+      print(f'Analzying image {img}')
 
-  print('-------RESULTS--------')
-  for c in classes:
-    print('%s: %.5f' % (labels.get(c.id, c.id), c.score))
+      image = Image.open(img).convert('RGB').resize(size, Image.LANCZOS)
+
+      params = common.input_details(interpreter, 'quantization_parameters')
+      scale = params['scales']
+      zero_point = params['zero_points']
+      mean = args.input_mean
+      std = args.input_std
+      if abs(scale * std - 1) < 1e-5 and abs(mean - zero_point) < 1e-5:
+        common.set_input(interpreter, image)
+      else:
+        normalized_input = (np.asarray(image) - mean) / (std * scale) + zero_point
+        np.clip(normalized_input, 0, 255, out=normalized_input)
+        common.set_input(interpreter, normalized_input.astype(np.uint8))
+
+      print('----INFERENCE TIME----')
+      if index == 0:
+          print('Note: The first inference on Edge TPU is slow because it includes',
+                'loading the model into Edge TPU memory.')
+      for _ in range(args.count):
+        start = time.perf_counter()
+        interpreter.invoke()
+        inference_time = time.perf_counter() - start
+        classes = classify.get_classes(interpreter, args.top_k, args.threshold)
+        print('%.1fms' % (inference_time * 1000))
+
+      print('-------RESULTS--------')
+      for c in classes:
+        print('%s: %.5f' % (labels.get(c.id, c.id), c.score))
 
 
 if __name__ == '__main__':

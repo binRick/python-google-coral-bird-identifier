@@ -6,8 +6,8 @@ if [[ ! -d .v ]]; then
 fi
 source .v/bin/activate
 BIRDS="\
-	parrot.jpg \
-	tufted_flycatcher.jpg \
+images/parrot.jpg\
+,images/tufted_flycatcher.jpg\
 "
 
 birds(){
@@ -15,7 +15,7 @@ birds(){
 	 time python3 ./test.py \
 		--model models/birds.tflite \
 		--labels labels/birds.txt \
-		--input images/$I
+		--input $I
 	done
 }
 
