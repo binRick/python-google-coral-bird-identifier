@@ -1,3 +1,3 @@
-![parrot](images/parrot.jpg)
-![tufted flycatcher](images/tufted_flycatcher.jpg)
+![parrot](images/birds/parrot.jpg)
+![tufted flycatcher](images/birds/tufted_flycatcher.jpg)
 ![birds](birds.png)
