@@ -2,13 +2,23 @@
 if [[ ! -d .v ]]; then
 	python3 -m venv .v
 	source .v/bin/activate
-	python3 -m pip install --extra-index-url https://google-coral.github.io/py-repo/ pycoral~=2.0
+	pip install numpy Pillow pycoral
+	#python3 -m pip install --extra-index-url https://google-coral.github.io/py-repo/ pycoral~=2.0
 fi
 source .v/bin/activate
 BIRDS="$(find images/birds/ -type f|tr '\n' ',')"
 PRODUCTS="$(find images/products/ -type f|tr '\n' ',')"
 GENDERS="$(find images/genders/ -type f|tr '\n' ',')"
+BANANAS="$(find images/bananas/ -type f|tr '\n' ',')"
 
+bananas(){
+	cmd="time python3 ./test.py \
+		--model models/mobilenet_v1_0.75_192_quant_edgetpu.tflite \
+		--labels labels/mobilenet_v1_0.75_192_quant_edgetpu.txt \
+		--input $BANANAS"
+	echo -e "$cmd" >&2
+	eval "$cmd"
+}
 products(){
 	cmd="time python3 ./test.py \
 		--model models/products.tflite \
@@ -35,8 +45,9 @@ birds(){
 }
 
 main(){
-	birds
-	products
+	#birds
+	#products
+	bananas
 	#genders
 }
 
